@@ -1,0 +1,83 @@
+---
+title: "Regression Models Course Project"
+author: "R Davis"
+date: "September 26, 2015"
+output: pdf_document
+---
+
+# Executive Summary
+
+This paper uses the mtcars dataset to answer the following two questions:
+
+* Is an automatic or manual transmission better for MPG?
+* Quantify the MPG difference between automatic and manual transmissions.
+
+In all models studied, a manual transmission was found to be better for MPG.  The best fit model calculated via the stepAIC function indicated that a manual transmission gives about 2.9 additional miles per gallon, with the other factors held constant.  
+
+# The mtcars Dataset
+
+The mtcars dataset consists of the following variables:
+
+1.	mpg:	Miles per gallon
+2.	cyl:	Number of cylinders
+3.	disp:	Displacement (cu.in.)
+4.	hp:	    Gross horsepower
+5.	drat:	Rear axle ratio
+6.	wt:	    Weight (lb/1000)
+7.	qsec:	1/4 mile time
+8.	vs:	    V/S (0 = V-engine, 1 = standard engine)
+9.	am:	    Transmission (0 = automatic, 1 = manual)
+10.	gear:	Number of forward gears
+11.	carb:	Number of carburetors
+
+# Exploratory Data Analyses
+
+An initial exploration of the mtcars data can be done via the pairs function as shown in Figure 1 in the Appendix.  In looking at first row of the plots, it appears that cyl, disp, hp, wt, and carb have a generally negative relationship with mpg (miles per gallon). That is, the higher these factors are, the lower the mpg tends to be.  In contrast, drat, qsec, vs, am, and gear tend to have a positive relationship with higher values corresponding to higher mpg.
+
+The variables cyl, vs, am, gear, and carb appear to have only a few distinct values and could be made factors.  However, this would likely be a mistake for those with more than two values as the numerical order of the variables would be lost.  For those with just two values (am and vs) such a conversion would likely have no effect but would be unnecessary.
+
+# Models Tested
+
+The following code creates 3 alternate models for studying the effect of a manual transmission on mpg:
+
+```{r,results='hide'}
+library(MASS)
+fitone <- lm(mpg ~ am, data=mtcars)
+fitall <- lm(mpg ~ ., data=mtcars)
+bestfit <- stepAIC(fitall, direction="both")
+```
+
+Model fitone uses am as the single regressor while model fitall uses all of the variables other than mpg as regressor variables.  Finally, the stepAIC function of the MASS package is used to estimate bestfit, the best fit model for determining mpg.  It calculates that the regressors for the best fit model are wt, qsec, and am.  The summaries for all three models can be seen in Figure 2 in the Appendix.
+
+As can be seen, the coefficient for am in models fitone, fitall, and bestfit is 7.244939, 2.520227, and 2.935837, respectively.  It seems likely that the larger coefficient for model fitone is because some of the gain in mpg that is actually due to other variables (like wt and qsec) are being attributed to am.  This is a key drawback of leaving key regressors out of the model.
+
+On the other hand, the coefficients for models fitall and bestfit are somewhat similar at 2.520227 and 2.935837.  In fact, the coefficients for wt and qsec are also somewhat similar between these two models.  In any case, the summaries show that all of the regressors in model bestfit are judged to be significant whereas only the regressor wt is judged to have some significance in model fitall.  A disadvantage of model fitall is likely that the added regressors that are correlated to mpg are also corrleated to the regressors wt and qsec of model bestfit.  Hence, they are probably redundant but somewhat less correlated to mpg and do not help the model.
+
+# Diagnostic Analyses of Model Bestfit
+
+Figure 3 in the Appendix shows a residuals plot of model bestfit.  As seen, there is a slight curve in the line fit to the residuals in the first plot and there are three points that are called out.  Other than that, however, the residuals seems to be fairly evenly distributed.
+
+# Conclusions
+
+As mentioned in the Executive Summary, this study concludes that a manual transmission is correlated with higher mpg than an automatic transmission.  The best fit model calculated indicates that a manual transmission gives about 2.9 additional miles per gallon, with the other factors held constant.  
+
+\newpage
+
+# Appendix
+## Figure 1 - Pairs plot for the “mtcars” dataset
+```{r,fig.height=7}
+pairs(~., data=mtcars)
+```
+
+## Figure 2 - Model Summaries
+```{r}
+summary(fitone)
+summary(fitall)
+summary(bestfit)
+```
+
+## Figure 3 - Diagnostic Plots of Model Bestfit
+```{r,echo=FALSE}
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(bestfit)
+```
